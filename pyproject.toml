@@ -1,0 +1,24 @@
+[project]
+name = "rhizome"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.83.0",
+    "matplotlib>=3.10.8",
+    "openai>=2.24.0",
+    "pandas>=3.0.1",
+    "pydantic-ai>=1.63.0",
+    "python-dotenv>=1.2.1",
+    "seaborn>=0.13.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that make real LLM calls (require ANTHROPIC_API_KEY)",
+]
