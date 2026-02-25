@@ -2,9 +2,23 @@
 
 import asyncio
 
+import logfire
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Print agent traces to the terminal (no Logfire account required).
+# Every tool call, argument, return value, and LLM response is shown as an
+# indented span so you can follow the agent's full reasoning chain.
+logfire.configure(
+    send_to_logfire=False,
+    console=logfire.ConsoleOptions(
+        verbose=True,
+        span_style="indented",
+        include_timestamps=False,
+    ),
+)
+logfire.instrument_pydantic_ai()
 
 EXAMPLES = [
     "For entity_42, which scenario yields the highest effect?",
