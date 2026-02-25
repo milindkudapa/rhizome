@@ -126,5 +126,44 @@ def compare_entities(ctx: RunContext[DataDeps], entity_ids: list[str]) -> str:
     return summary.to_string(index=False)
 
 
+@analyze_agent.tool
+def get_dataset_overview(ctx: RunContext[DataDeps]) -> str:
+    """
+    Return a compact aggregated overview of the entire dataset in a single call.
+    Use this for global or all-entities queries instead of calling query_entity_data
+    once per entity. Returns: global stats, mean effect by action, mean effect by
+    scenario, and the top-5 / bottom-5 entities by mean effect.
+    """
+    df = ctx.deps.df
+    global_stats = df[["intervention_effect", "intervention_cost"]].describe().round(2)
+    by_action = (
+        df.groupby("action")[["intervention_effect", "intervention_cost"]]
+        .mean()
+        .round(2)
+    )
+    by_scenario = (
+        df.groupby("scenario")[["intervention_effect", "intervention_cost"]]
+        .mean()
+        .round(2)
+    )
+    by_entity = (
+        df.groupby("entity")["intervention_effect"]
+        .mean()
+        .round(2)
+        .reset_index()
+        .rename(columns={"intervention_effect": "mean_effect"})
+        .sort_values("mean_effect", ascending=False)
+    )
+    top5 = by_entity.head(5)
+    bottom5 = by_entity.tail(5)
+    return (
+        f"=== Global Stats ===\n{global_stats.to_string()}\n\n"
+        f"=== Mean by Action ===\n{by_action.to_string()}\n\n"
+        f"=== Mean by Scenario ===\n{by_scenario.to_string()}\n\n"
+        f"=== Top 5 Entities (mean effect) ===\n{top5.to_string(index=False)}\n\n"
+        f"=== Bottom 5 Entities (mean effect) ===\n{bottom5.to_string(index=False)}"
+    )
+
+
 def get_analyze_agent() -> tuple[Agent, DataDeps]:
     return analyze_agent, DataDeps(df=get_df())
