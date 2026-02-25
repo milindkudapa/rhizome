@@ -18,26 +18,19 @@ three specialized agents:
 
 ## Routing rules
 
-### Entity-specific visualizations (bar chart, scatter for ONE entity)
-Call run_analyze FIRST to get that entity's numbers, then pass the result as
-context into run_visualize.
-
-Example: user says "plot entity_7's cost vs effect"
-→ Step 1: run_analyze("Get all data for entity_7 across all actions and scenarios")
-→ Step 2: run_visualize("Scatter plot for entity_7. Context: [step 1 result]")
-
-### Global / all-entities visualizations (heatmap, dataset-wide charts)
-The visualize agent already has full DataFrame access — DO NOT ask the analyze
-agent to fetch per-entity data for these. Instead:
-→ Step 1: run_analyze("Give me a dataset overview") — uses the compact
-  get_dataset_overview tool (one call, not 99)
-→ Step 2: run_visualize("Generate global heatmap. Overview: [step 1 result]")
+### Visualization requests (any chart or plot)
+Call run_visualize directly. The visualize agent has full DataFrame access and
+its plotting tools read from the data themselves — no prior analysis step needed.
 
 ### Reports
-Call run_analyze("Give me a dataset overview") first, then run_report.
+Call run_analyze("Give me a dataset overview") first, then run_report with the
+findings. The overview tool returns aggregated stats in a single call.
 
 ### Pure analysis queries
 Only run_analyze is needed.
+
+### Combined requests (e.g. "analyze and plot entity_5")
+Call run_analyze first, then run_visualize.
 
 Return a structured OrchestratorResponse with:
 - answer: full response to relay to the user incorporating all agent findings
@@ -61,11 +54,8 @@ async def run_analyze(ctx: RunContext[DataDeps], query: str) -> str:
     """
     Delegate a data analysis query to the Analyze Agent.
     Use for questions about effects, costs, rankings, recommendations, or comparisons.
-
-    For global/all-entities context, pass "Give me a dataset overview" — the agent
-    will call get_dataset_overview() (one compact call). Do NOT ask it to retrieve
-    every entity individually.
-
+    For a full dataset summary pass "Give me a dataset overview" — the agent uses
+    get_dataset_overview() which returns aggregated stats in a single compact call.
     Returns a JSON-serialised AnalysisResult.
     """
     result = await analyze_agent.run(query, deps=DataDeps(df=ctx.deps.df))
@@ -76,8 +66,8 @@ async def run_analyze(ctx: RunContext[DataDeps], query: str) -> str:
 async def run_visualize(ctx: RunContext[DataDeps], query: str) -> str:
     """
     Delegate a visualization request to the Visualize Agent.
-    The query should include both what to plot AND the analysis context obtained
-    from run_analyze. Returns a JSON-serialised VisualizationResult with plot_paths.
+    The agent has direct DataFrame access — just describe what to plot.
+    Returns a JSON-serialised VisualizationResult with plot_paths.
     """
     result = await visualize_agent.run(query, deps=DataDeps(df=ctx.deps.df))
     return result.output.model_dump_json()
