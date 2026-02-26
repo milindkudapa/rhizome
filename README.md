@@ -1,4 +1,4 @@
-# Rhizome Multi-Agent Analysis System
+# Multi-Agent Analysis System
 
 A multi-agent AI system built with [PydanticAI](https://ai.pydantic.dev/) that answers natural language queries about intervention data. An orchestrator routes each query to specialised sub-agents for analysis, visualisation, and reporting — all backed by typed Pydantic models end-to-end.
 
@@ -21,7 +21,14 @@ User query (CLI: main.py)
 └─────────────────────────────────────────────────────┘
 ```
 
-**Visualization always requires prior analysis.** When a plot is requested the orchestrator automatically calls `run_analyze` first, then forwards those findings as context into `run_visualize`. This is enforced in the orchestrator's system prompt — the user never has to ask for both explicitly.
+**Routing rules (enforced in the orchestrator's system prompt):**
+
+| Request type | Orchestrator behaviour |
+|---|---|
+| Pure analysis | `run_analyze` only |
+| Visualization | `run_visualize` directly — plotting tools have full DataFrame access, no prior analysis needed |
+| Report | `run_analyze("Give me a dataset overview")` → `run_report` |
+| Combined ("analyze and plot") | `run_analyze` → `run_visualize` |
 
 ---
 
@@ -68,6 +75,7 @@ Answers quantitative questions about the dataset using pandas operations.
 | `recommend_action(entity_id)` | Best action by mean cost-efficiency (effect / cost) |
 | `compute_cost_efficiency(entity_id)` | Full efficiency table sorted descending |
 | `compare_entities(entity_ids)` | Side-by-side mean effect / cost across multiple entities |
+| `get_dataset_overview()` | Compact global summary — aggregated stats, per-action/scenario means, top-5/bottom-5 entities in a single call |
 
 ### Visualize Agent (`agents/visualize.py`)
 Generates matplotlib/seaborn charts and saves them as PNG files to `plots/`.
@@ -191,7 +199,7 @@ rhizome/
 ├── main.py                  # async CLI REPL
 ├── agents/
 │   ├── models.py            # DataDeps + all Pydantic output models
-│   ├── analyze.py           # Analyze Agent + 6 tools
+│   ├── analyze.py           # Analyze Agent + 7 tools
 │   ├── visualize.py         # Visualize Agent + 3 tools
 │   ├── report.py            # Report Agent + 5 tools
 │   └── orchestrator.py      # Orchestrator Agent + 3 delegation tools

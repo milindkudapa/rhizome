@@ -1,4 +1,4 @@
-"""Interactive CLI for the Rhizome multi-agent system."""
+"""Interactive CLI for the multi-agent system."""
 
 import asyncio
 
