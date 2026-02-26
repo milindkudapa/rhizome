@@ -25,8 +25,8 @@ User query (CLI: main.py)
 
 | Request type | Orchestrator behaviour |
 |---|---|
-| Pure analysis | `run_analyze` only |
-| Visualization | `run_visualize` directly — plotting tools have full DataFrame access, no prior analysis needed |
+| Pure analysis | `run_analyze`  |
+| Visualization | `run_visualize`  |
 | Report | `run_analyze("Give me a dataset overview")` → `run_report` |
 | Combined ("analyze and plot") | `run_analyze` → `run_visualize` |
 
@@ -109,7 +109,7 @@ Synthesises dataset statistics into a structured markdown report saved to `repor
 | `action` | `action_1`, `action_2`, `action_3` |
 | `scenario` | `scenario_1`, `scenario_2`, `scenario_3` |
 | `intervention_effect` | float — magnitude of the intervention effect |
-| `intervention_cost` | float — cost in dollars |
+| `intervention_cost` | float — cost |
 
 ---
 
